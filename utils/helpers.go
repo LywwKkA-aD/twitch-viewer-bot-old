@@ -1,24 +1,36 @@
 package utils
 
 import (
-	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
+	"github.com/sirupsen/logrus"
 )
 
-func TryClickConsent(page *rod.Page, buttonConsent string) error {
+var log = logrus.New()
 
-	// Find the button using the selector
+func TryClickConsent(page *rod.Page, buttonConsent string) {
 	btn, err := page.Element(buttonConsent)
 	if err != nil {
-		return fmt.Errorf("failed to find the accept cookies button: %w", err)
+		log.Error("Consent button not found: ", err)
+		return
 	}
-
-	// Click on the button with the left mouse button and a click count of 1
 	if err := btn.Click(proto.InputMouseButtonLeft, 1); err != nil {
-		return fmt.Errorf("failed to click the consent button: %w", err)
+		log.Error("Error clicking consent button: ", err)
 	}
+}
 
-	return nil
+func VerifyProxy(proxyURL string) bool {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Get("https://www.twitch.tv/")
+	if err != nil {
+		log.Error("Proxy verification failed: ", err)
+		return false
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode == http.StatusOK
 }
