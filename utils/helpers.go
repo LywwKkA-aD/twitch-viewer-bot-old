@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
@@ -22,23 +21,4 @@ func TryClickConsent(page *rod.Page, buttonConsent string) error {
 	}
 
 	return nil
-}
-
-func SetLocalStorage(page *rod.Page, storage map[string]string) {
-	var scriptBuilder strings.Builder
-
-	// Start the script
-	scriptBuilder.WriteString("")
-
-	for key, value := range storage {
-		// Escape single quotes in key and value to ensure JavaScript code validity
-		escapedKey := strings.ReplaceAll(key, "'", "\\'")
-		escapedValue := strings.ReplaceAll(value, "'", "\\'")
-
-		// Add each local storage set item to the script
-		scriptBuilder.WriteString(fmt.Sprintf("localStorage.setItem('%s', '%s');\n", escapedKey, escapedValue))
-	}
-
-	// Execute the complete script
-	page.MustEvaluate(scriptBuilder.String())
 }
