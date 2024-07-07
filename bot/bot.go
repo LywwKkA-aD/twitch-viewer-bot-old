@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"os"
 	"time"
 	"twitch-viewer-bot/utils"
 
@@ -12,13 +13,12 @@ import (
 
 var log = logrus.New()
 
-func OpenBot(id int8, stopChan chan bool) {
-	proxyURL := "http://p.webshare.io:9999"
+func OpenBot(id int, proxyURL string, stopChan chan struct{}) {
 	if !utils.VerifyProxy(proxyURL) {
-		log.Error("Proxy failed for bot: ", id)
+		log.Errorf("Proxy failed for bot: %d", id)
 		return
 	}
-	log.Infof("Function instance %d is running with proxy: %s\n", id, proxyURL)
+	log.Infof("Function instance %d is running with proxy: %s", id, proxyURL)
 
 	l := launcher.New().
 		Headless(true).
@@ -29,12 +29,12 @@ func OpenBot(id int8, stopChan chan bool) {
 		Set("disable-features", "OutOfBlinkCors").
 		Set("disable-blink-features", "AutomationControlled").
 		Set("mute-audio", "true").
-		Bin("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe").
+		Bin(os.Getenv("BROWSER")).
 		NoSandbox(true)
 
 	url := l.MustLaunch()
 	browser := rod.New().ControlURL(url).MustConnect().DefaultDevice(devices.Clear)
-	page := browser.MustPage("https://www.twitch.tv/billieblaze")
+	page := browser.MustPage(os.Getenv("TWITCH_URL"))
 	page.MustWaitLoad()
 
 	utils.TryClickConsent(page, `button[data-a-target="consent-banner-accept"]`)
@@ -54,12 +54,11 @@ func OpenBot(id int8, stopChan chan bool) {
 	time.Sleep(2 * time.Second)
 	page.Reload()
 
-	select {
-	case <-stopChan:
-		log.Info("Stopping bot: ", id)
-		browser.MustClose()
-		return
-	default:
-		// continue running
-	}
+	log.Infof("Bot %d is now watching the stream", id)
+
+	// Wait for stop signal
+	<-stopChan
+	log.Infof("Stopping bot: %d", id)
+	browser.MustClose()
+	log.Infof("Bot %d has been stopped", id)
 }
