@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"os"
 	"time"
 	"twitch-viewer-bot/utils"
 
@@ -29,7 +28,7 @@ func OpenBot(id int, proxyURL string, stopChan chan struct{}) {
 		Set("disable-features", "OutOfBlinkCors").
 		Set("disable-blink-features", "AutomationControlled").
 		Set("mute-audio", "true").
-		Bin(os.Getenv("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")).
+		Bin("").
 		NoSandbox(true)
 
 	url := l.MustLaunch()
