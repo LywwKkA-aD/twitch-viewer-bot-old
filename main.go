@@ -61,7 +61,7 @@ func manageBotLifespan(id int, stopChan chan struct{}) {
 }
 
 func botManager() {
-	middleAmount := 7 // Set this to your desired middle amount of bots
+	middleAmount := 15 // Set this to your desired middle amount of bots
 	for {
 		variation := rand.Intn(11) - 5 // Random number between -5 and +5
 		newBotCount := middleAmount + variation

@@ -29,12 +29,12 @@ func OpenBot(id int, proxyURL string, stopChan chan struct{}) {
 		Set("disable-features", "OutOfBlinkCors").
 		Set("disable-blink-features", "AutomationControlled").
 		Set("mute-audio", "true").
-		Bin(os.Getenv("BROWSER")).
+		Bin(os.Getenv("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")).
 		NoSandbox(true)
 
 	url := l.MustLaunch()
 	browser := rod.New().ControlURL(url).MustConnect().DefaultDevice(devices.Clear)
-	page := browser.MustPage(os.Getenv("TWITCH_URL"))
+	page := browser.MustPage("https://www.twitch.tv/lmckgkfj9")
 	page.MustWaitLoad()
 
 	utils.TryClickConsent(page, `button[data-a-target="consent-banner-accept"]`)
