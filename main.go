@@ -40,24 +40,19 @@ func adjustBots(targetCount int) {
 				time.Sleep(delay)
 				proxyURL := "http://p.webshare.io:9999" // Proxy URL should be dynamic or configurable
 				log.Infof("Starting bot %d with a delay of %v", id, delay)
+				duration := time.Duration(rand.Intn(25)+5) * time.Minute // Bot operates between 5 to 30 minutes
+				log.Infof("Bot %d will run for a lifespan of %.2f minutes", id, duration.Minutes())
 				go bot.OpenBot(id, proxyURL, stopChan)
-				manageBotLifespan(id, stopChan)
+				time.Sleep(duration)
+				close(stopChan)
+				botCountMutex.Lock()
+				delete(stopChans, id)
+				botCountMutex.Unlock()
+				log.Infof("Bot %d stopped after %.2f minutes", id, duration.Minutes())
 			}(id)
 		}
 	}
 	log.Infof("Adjusted bot count from %d to %d at %v", currentCount, len(stopChans), time.Now().Format("2006-01-02 15:04:05"))
-}
-
-func manageBotLifespan(id int, stopChan chan struct{}) {
-	duration := time.Duration(rand.Intn(25)+5) * time.Minute // Bot operates between 5 to 30 minutes
-	log.Infof("Bot %d will run for a lifespan of %.2f minutes", id, duration.Minutes())
-	time.Sleep(duration)
-	close(stopChan)
-
-	botCountMutex.Lock()
-	defer botCountMutex.Unlock()
-	delete(stopChans, id)
-	log.Infof("Bot %d stopped after %.2f minutes", id, duration.Minutes())
 }
 
 func botManager() {
