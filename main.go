@@ -13,6 +13,7 @@ var (
 	log           = logrus.New()
 	botCountMutex sync.Mutex
 	stopChans     map[int]chan struct{}
+	botIDs        int // Added to keep track of unique bot IDs
 )
 
 func init() {
@@ -22,6 +23,14 @@ func init() {
 	}
 	log.Level = logrus.DebugLevel
 	stopChans = make(map[int]chan struct{})
+	botIDs = 0 // Initialize botIDs
+}
+
+func getUniqueBotID() int {
+	botCountMutex.Lock()
+	defer botCountMutex.Unlock()
+	botIDs++
+	return botIDs
 }
 
 func adjustBots(targetCount int) {
@@ -33,7 +42,7 @@ func adjustBots(targetCount int) {
 	if diff > 0 {
 		for i := 0; i < diff; i++ {
 			stopChan := make(chan struct{})
-			id := len(stopChans)
+			id := getUniqueBotID()
 			stopChans[id] = stopChan
 			delay := time.Duration(rand.Intn(5000)) * time.Millisecond // Random start delay up to 5 seconds
 			go func(id int) {
