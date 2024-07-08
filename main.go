@@ -39,12 +39,12 @@ func adjustBots(targetCount int) {
 			}
 			stopChan := make(chan struct{})
 			stopChans[id] = stopChan
-			delay := time.Duration(rand.Intn(5000)) * time.Millisecond // Random start delay up to 5 seconds
+			delay := time.Duration(rand.Intn(20)+10) * time.Second // Random start delay up to 5 seconds
 			go func(id int) {
 				time.Sleep(delay)
 				proxyURL := "http://p.webshare.io:9999" // Proxy URL should be dynamic or configurable
 				log.Infof("Starting bot %d with a delay of %v", id, delay)
-				duration := time.Duration(rand.Intn(25)+5) * time.Minute // Bot operates between 5 to 30 minutes
+				duration := time.Duration(rand.Intn(15)+5) * time.Minute // Bot operates between 5 to 30 minutes
 				log.Infof("Bot %d will run for a lifespan of %.2f minutes", id, duration.Minutes())
 				go bot.OpenBot(id, proxyURL, stopChan)
 				time.Sleep(duration)
