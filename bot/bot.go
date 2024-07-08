@@ -28,7 +28,7 @@ func OpenBot(id int, proxyURL string, stopChan chan struct{}) {
 		Set("disable-features", "OutOfBlinkCors").
 		Set("disable-blink-features", "AutomationControlled").
 		Set("mute-audio", "true").
-		Bin("").
+		Bin("/usr/bin/google-chrome").
 		NoSandbox(true)
 
 	url := l.MustLaunch()
