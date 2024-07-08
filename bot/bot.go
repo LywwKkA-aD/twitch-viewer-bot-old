@@ -33,7 +33,7 @@ func OpenBot(id int, proxyURL string, stopChan chan struct{}) {
 
 	url := l.MustLaunch()
 	browser := rod.New().ControlURL(url).MustConnect().DefaultDevice(devices.Clear)
-	page := browser.MustPage("https://www.twitch.tv/lmckgkfj9")
+	page := browser.MustPage("https://www.twitch.tv/nikchiz")
 	page.MustWaitLoad()
 
 	utils.TryClickConsent(page, `button[data-a-target="consent-banner-accept"]`)
