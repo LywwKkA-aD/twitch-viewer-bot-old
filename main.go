@@ -13,7 +13,7 @@ var (
 	log           = logrus.New()
 	botCountMutex sync.Mutex
 	stopChans     map[int]chan struct{}
-	botIDs        int // Added to keep track of unique bot IDs
+	botIDCounter  int // Added to keep track of unique bot IDs
 )
 
 func init() {
@@ -23,14 +23,14 @@ func init() {
 	}
 	log.Level = logrus.DebugLevel
 	stopChans = make(map[int]chan struct{})
-	botIDs = 0 // Initialize botIDs
+	botIDCounter = 0 // Initialize botIDCounter
 }
 
 func getUniqueBotID() int {
 	botCountMutex.Lock()
 	defer botCountMutex.Unlock()
-	botIDs++
-	return botIDs
+	botIDCounter++
+	return botIDCounter
 }
 
 func adjustBots(targetCount int) {
@@ -38,14 +38,16 @@ func adjustBots(targetCount int) {
 	defer botCountMutex.Unlock()
 
 	currentCount := len(stopChans)
+	log.Debugf("Current bot count: %d, Target bot count: %d", currentCount, targetCount)
 	diff := targetCount - currentCount
 	if diff > 0 {
 		for i := 0; i < diff; i++ {
 			stopChan := make(chan struct{})
 			id := getUniqueBotID()
 			stopChans[id] = stopChan
-			delay := time.Duration(rand.Intn(5000)) * time.Millisecond // Random start delay up to 5 seconds
+			delay := time.Duration(rand.Intn(30000)) * time.Millisecond // Random start delay up to 5 seconds
 			go func(id int) {
+				log.Debugf("Bot %d will start after a delay of %v", id, delay)
 				time.Sleep(delay)
 				proxyURL := "http://p.webshare.io:9999" // Proxy URL should be dynamic or configurable
 				log.Infof("Starting bot %d with a delay of %v", id, delay)
@@ -65,7 +67,7 @@ func adjustBots(targetCount int) {
 }
 
 func botManager() {
-	middleAmount := 15 // Set this to your desired middle amount of bots
+	middleAmount := 12 // Set this to your desired middle amount of bots
 	for {
 		variation := rand.Intn(11) - 5 // Random number between -5 and +5
 		newBotCount := middleAmount + variation
