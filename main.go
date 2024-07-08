@@ -48,11 +48,13 @@ func adjustBots(targetCount int) {
 				log.Infof("Bot %d will run for a lifespan of %.2f minutes", id, duration.Minutes())
 				go bot.OpenBot(id, proxyURL, stopChan)
 				time.Sleep(duration)
-				close(stopChan)
 				botCountMutex.Lock()
-				delete(stopChans, id)
+				if ch, exists := stopChans[id]; exists {
+					close(ch)
+					delete(stopChans, id)
+					log.Infof("Bot %d stopped after %.2f minutes", id, duration.Minutes())
+				}
 				botCountMutex.Unlock()
-				log.Infof("Bot %d stopped after %.2f minutes", id, duration.Minutes())
 			}(id)
 		}
 	} else if diff < 0 {
@@ -60,10 +62,12 @@ func adjustBots(targetCount int) {
 			if diff == 0 {
 				break
 			}
-			close(stopChans[id])
-			delete(stopChans, id)
-			diff++
-			log.Infof("Stopped bot %d", id)
+			if ch, exists := stopChans[id]; exists {
+				close(ch)
+				delete(stopChans, id)
+				log.Infof("Stopped bot %d", id)
+				diff++
+			}
 		}
 	}
 	log.Infof("Adjusted bot count from %d to %d at %v", currentCount, len(stopChans), time.Now().Format("2006-01-02 15:04:05"))
