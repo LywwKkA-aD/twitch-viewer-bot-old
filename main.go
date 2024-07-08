@@ -32,8 +32,12 @@ func adjustBots(targetCount int) {
 	diff := targetCount - currentCount
 	if diff > 0 {
 		for i := 0; i < diff; i++ {
-			stopChan := make(chan struct{})
 			id := len(stopChans)
+			if _, exists := stopChans[id]; exists {
+				log.Warnf("Bot with ID %d already exists", id)
+				continue
+			}
+			stopChan := make(chan struct{})
 			stopChans[id] = stopChan
 			delay := time.Duration(rand.Intn(5000)) * time.Millisecond // Random start delay up to 5 seconds
 			go func(id int) {
@@ -50,6 +54,16 @@ func adjustBots(targetCount int) {
 				botCountMutex.Unlock()
 				log.Infof("Bot %d stopped after %.2f minutes", id, duration.Minutes())
 			}(id)
+		}
+	} else if diff < 0 {
+		for id := range stopChans {
+			if diff == 0 {
+				break
+			}
+			close(stopChans[id])
+			delete(stopChans, id)
+			diff++
+			log.Infof("Stopped bot %d", id)
 		}
 	}
 	log.Infof("Adjusted bot count from %d to %d at %v", currentCount, len(stopChans), time.Now().Format("2006-01-02 15:04:05"))
