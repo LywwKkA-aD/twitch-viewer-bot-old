@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"sync"
 	"time"
 	"twitch-viewer-bot/utils"
 
@@ -12,7 +13,8 @@ import (
 
 var log = logrus.New()
 
-func OpenBot(id int, proxyURL string, stopChan chan struct{}) {
+func OpenBot(id int, proxyURL string, stopChan chan struct{}, wg *sync.WaitGroup) {
+	defer wg.Done()
 	if !utils.VerifyProxy(proxyURL) {
 		log.Errorf("Proxy failed for bot: %d", id)
 		return
@@ -28,12 +30,12 @@ func OpenBot(id int, proxyURL string, stopChan chan struct{}) {
 		Set("disable-features", "OutOfBlinkCors").
 		Set("disable-blink-features", "AutomationControlled").
 		Set("mute-audio", "true").
-		Bin("/usr/bin/google-chrome").
+		Bin("").
 		NoSandbox(true)
 
 	url := l.MustLaunch()
 	browser := rod.New().ControlURL(url).MustConnect().DefaultDevice(devices.Clear)
-	page := browser.MustPage("https://www.twitch.tv/holaholagetadollaa")
+	page := browser.MustPage("https://www.twitch.tv/lmckgkfj9")
 	page.MustWaitLoad()
 
 	utils.TryClickConsent(page, `button[data-a-target="consent-banner-accept"]`)

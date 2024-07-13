@@ -13,6 +13,8 @@ var (
 	log           = logrus.New()
 	botCountMutex sync.Mutex
 	stopChans     map[int]chan struct{}
+	wg            sync.WaitGroup
+	middleAmount  = 10 // Middle amount of bots
 )
 
 func init() {
@@ -39,14 +41,15 @@ func adjustBots(targetCount int) {
 			}
 			stopChan := make(chan struct{})
 			stopChans[id] = stopChan
-			delay := time.Duration(rand.Intn(20)+10) * time.Second // Random start delay up to 5 seconds
+			delay := time.Duration(rand.Intn(21)+10) * time.Second // Random start delay between 10 and 30 seconds
+			wg.Add(1)
 			go func(id int) {
 				time.Sleep(delay)
 				proxyURL := "http://p.webshare.io:9999" // Proxy URL should be dynamic or configurable
 				log.Infof("Starting bot %d with a delay of %v", id, delay)
-				duration := time.Duration(rand.Intn(15)+5) * time.Minute // Bot operates between 5 to 30 minutes
+				duration := time.Duration(rand.Intn(31)+15) * time.Minute // Bot operates between 15 to 45 minutes
 				log.Infof("Bot %d will run for a lifespan of %.2f minutes", id, duration.Minutes())
-				go bot.OpenBot(id, proxyURL, stopChan)
+				bot.OpenBot(id, proxyURL, stopChan, &wg)
 				time.Sleep(duration)
 				botCountMutex.Lock()
 				if ch, exists := stopChans[id]; exists {
@@ -74,17 +77,16 @@ func adjustBots(targetCount int) {
 }
 
 func botManager() {
-	middleAmount := 15 // Set this to your desired middle amount of bots
 	for {
-		variation := rand.Intn(11) - 5 // Random number between -5 and +5
+		variation := rand.Intn(7) - 3 // Random number between -3 and +3
 		newBotCount := middleAmount + variation
 		log.Infof("Checking bot count adjustment at %v", time.Now().Format("2006-01-02 15:04:05"))
 		adjustBots(newBotCount)
-		time.Sleep(5 * time.Minute) // Adjust bot count every 5 minutes
+		time.Sleep(10 * time.Minute) // Adjust bot count every 10 minutes
 	}
 }
 
 func main() {
 	go botManager()
-	select {} // Keep the main goroutine running indefinitely
+	wg.Wait() // Wait for all goroutines to finish
 }
